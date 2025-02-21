@@ -241,21 +241,90 @@ export { TSAsExpression as TSSatisfiesExpression };
 
 export { UnaryLike as TSTypeAssertion };
 
+export function TSConditionalType(
+  node: t.TSConditionalType,
+  parent: t.Node,
+): boolean {
+  const parentType = parent.type;
+  if (
+    parentType === "TSArrayType" ||
+    (parentType === "TSIndexedAccessType" && parent.objectType === node) ||
+    parentType === "TSOptionalType" ||
+    parentType === "TSTypeOperator" ||
+    // for `infer K extends (L extends M ? M : ...)`
+    parentType === "TSTypeParameter"
+  ) {
+    return true;
+  }
+  if (
+    (parentType === "TSIntersectionType" || parentType === "TSUnionType") &&
+    parent.types[0] === node
+  ) {
+    return true;
+  }
+  if (
+    parentType === "TSConditionalType" &&
+    (parent.checkType === node || parent.extendsType === node)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function TSUnionType(node: t.TSUnionType, parent: t.Node): boolean {
   const parentType = parent.type;
   return (
-    parentType === "TSArrayType" ||
-    parentType === "TSOptionalType" ||
     parentType === "TSIntersectionType" ||
-    parentType === "TSRestType"
+    parentType === "TSTypeOperator" ||
+    parentType === "TSArrayType" ||
+    (parentType === "TSIndexedAccessType" && parent.objectType === node) ||
+    parentType === "TSOptionalType"
   );
 }
 
-export { TSUnionType as TSIntersectionType };
+export function TSIntersectionType(
+  node: t.TSUnionType,
+  parent: t.Node,
+): boolean {
+  const parentType = parent.type;
+  return (
+    parentType === "TSTypeOperator" ||
+    parentType === "TSArrayType" ||
+    (parentType === "TSIndexedAccessType" && parent.objectType === node) ||
+    parentType === "TSOptionalType"
+  );
+}
 
 export function TSInferType(node: t.TSInferType, parent: t.Node): boolean {
   const parentType = parent.type;
-  return parentType === "TSArrayType" || parentType === "TSOptionalType";
+  if (
+    parentType === "TSArrayType" ||
+    (parentType === "TSIndexedAccessType" && parent.objectType === node) ||
+    parentType === "TSOptionalType"
+  ) {
+    return true;
+  }
+  if (node.typeParameter.constraint) {
+    if (
+      (parentType === "TSIntersectionType" || parentType === "TSUnionType") &&
+      parent.types[0] === node
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function TSTypeOperator(
+  node: t.TSTypeOperator,
+  parent: t.Node,
+): boolean {
+  const parentType = parent.type;
+  return (
+    parentType === "TSArrayType" ||
+    (parentType === "TSIndexedAccessType" && parent.objectType === node) ||
+    parentType === "TSOptionalType"
+  );
 }
 
 export function TSInstantiationExpression(
@@ -275,6 +344,25 @@ export function TSInstantiationExpression(
         parent.typeParameters)
   );
 }
+
+export function TSFunctionType(
+  node: t.TSFunctionType,
+  parent: t.Node,
+): boolean {
+  const parentType = parent.type;
+  return (
+    parentType === "TSIntersectionType" ||
+    parentType === "TSUnionType" ||
+    parentType === "TSTypeOperator" ||
+    parentType === "TSOptionalType" ||
+    parentType === "TSArrayType" ||
+    (parentType === "TSIndexedAccessType" && parent.objectType === node) ||
+    (parentType === "TSConditionalType" &&
+      (parent.checkType === node || parent.extendsType === node))
+  );
+}
+
+export { TSFunctionType as TSConstructorType };
 
 export function BinaryExpression(
   node: t.BinaryExpression,
