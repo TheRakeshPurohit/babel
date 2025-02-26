@@ -135,6 +135,7 @@ defineType("TSPropertySignature", {
     readonly: validateOptional(bool),
     typeAnnotation: validateOptionalType("TSTypeAnnotation"),
     kind: {
+      optional: true,
       validate: assertOneOf("get", "set"),
     },
   },
@@ -465,7 +466,7 @@ if (process.env.BABEL_8_BREAKING) {
     aliases: ["TSType"],
     visitor: ["expression", "typeArguments"],
     fields: {
-      expression: validateType("TSEntityName"),
+      expression: validateType("Expression"),
       typeArguments: validateOptionalType("TSTypeParameterInstantiation"),
     },
   });
@@ -473,7 +474,7 @@ if (process.env.BABEL_8_BREAKING) {
     aliases: ["TSType"],
     visitor: ["expression", "typeArguments"],
     fields: {
-      expression: validateType("TSEntityName"),
+      expression: validateType("Expression"),
       typeArguments: validateOptionalType("TSTypeParameterInstantiation"),
     },
   });
